@@ -152,7 +152,7 @@ class DualTensor(DualNumber):
 
     def __sub__(self, other):
         if isinstance(other, DualTensor) or isinstance(other, DualNumber):
-            return (self.real - other.real, self.dual - other.dual)
+            return DualNumber(self.real - other.real, self.dual - other.dual)
         else:
             return DualTensor(self.real - other, self.dual)
         
