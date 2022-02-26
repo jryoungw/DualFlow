@@ -25,13 +25,13 @@ class DualNumber():
 
     def __sub__(self, other):
         if isinstance(other, DualNumber):
-            return (self.real - other.real, self.dual - other.dual)
+            return DualNumber(self.real - other.real, self.dual - other.dual)
         else:
             return DualNumber(self.real - other, self.dual)
         
     def __rsub__(self, other):
         if isinstance(other, DualNumber):
-            return (other.real - self.real, other.dual - self.dual)
+            return DualNumber(other.real - self.real, other.dual - self.dual)
         else:
             return DualNumber(other - self.real, -self.dual)
 
@@ -78,49 +78,49 @@ class DualNumber():
         
     def mul_lreal(self, other):
         if isinstance(other, DualNumber) or isinstance(other, DualTensor):
-            return (self.real * other.real, self.dual)
+            return DualNumber(self.real * other.real, self.dual)
         else:
             return self.__mul__(self, other)
         
     def mul_rreal(self, other):
         if isinstance(other, DualNumber) or isinstance(other, DualTensor):
-            return (self.real * other.real, other.dual)
+            return DualNumber(self.real * other.real, other.dual)
         else:
             return self.__mul__(self, other)
         
     def add_lreal(self, other):
         if isinstance(other, DualNumber) or isinstance(other, DualTensor):
-            return (self.real + other.real, self.dual)
+            return DualNumber(self.real + other.real, self.dual)
         else:
             return self.__add__(self, other)
     
     def add_rreal(self, other):
         if isinstance(other, DualNumber) or isinstance(other, DualTensor):
-            return (self.real + other.real, other.dual)
+            return DualNumber(self.real + other.real, other.dual)
         else:
             return self.__add__(self, other)
     
     def div_lreal(self, other):
         if isinstance(other, DualNumber) or isinstance(other, DualTensor):
-            return (self.real / other.real, self.dual)
+            return DualNumber(self.real / other.real, self.dual)
         else:
             return self.__div__(self, other)
     
     def div_rreal(self, other):
         if isinstance(other, DualNumber) or isinstance(other, DualTensor):
-            return (self.real + other.real, other.dual)
+            return DualNumber(self.real + other.real, other.dual)
         else:
             return self.__div__(self, other)
         
     def sub_lreal(self, other):
         if isinstance(other, DualNumber) or isinstance(other, DualTensor):
-            return (self.real - other.real, self.dual)
+            return DualNumber(self.real - other.real, self.dual)
         else:
             return self.__sub__(self, other)
     
     def sub_rreal(self, other):
         if isinstance(other, DualNumber) or isinstance(other, DualTensor):
-            return (self.real - other.real, other.dual)
+            return DualNumber(self.real - other.real, other.dual)
         else:
             return self.__sub__(self, other)
         
@@ -158,18 +158,18 @@ class DualTensor(DualNumber):
         
     def __rsub__(self, other):
         if isinstance(other, DualTensor) or isinstance(other, DualNumber):
-            return (other.real - self.real, other.dual - self.dual)
+            return DualNumber(other.real - self.real, other.dual - self.dual)
         else:
             return DualTensor(other - self.real, -self.dual)
 
     def __mul__(self, other):
         if isinstance(other, DualTensor) or isinstance(other, DualNumber):
-            return (self.real * other.real, self.real * other.dual + self.dual * other.real)
+            return DualNumber(self.real * other.real, self.real * other.dual + self.dual * other.real)
         else:
             return DualTensor(self.real * other, self.dual * other)
     def __rmul__(self, other):
         if isinstance(other, DualTensor) or isinstance(other, DualNumber):
-            return (self.real * other.real, self.real * other.dual + self.dual * other.real)
+            return DualNumber(self.real * other.real, self.real * other.dual + self.dual * other.real)
         else:
             return DualTensor(self.real * other, self.dual * other)
 
