@@ -1,5 +1,5 @@
-from DualClass import DualNumber
 import numpy as np
+from time import time
 
 x_train = np.array([1., 2., 3., 4., 5., 6.])
 y_train = np.array([9., 12., 15., 18., 21., 24.])
@@ -12,6 +12,8 @@ if __name__=="__main__":
 
     epochs = 5000
     learning_rate = 0.01
+    
+    start = time()
 
     for i in range(epochs):
         hypothesis = x_train * W + b
@@ -24,3 +26,4 @@ if __name__=="__main__":
 
     print('W: {}'.format(W))
     print('b: {}'.format(b))
+    print(f'Numpy version : {time() - start} sec took for {epochs} epochs.')

@@ -1,5 +1,7 @@
 import math
 from DualClass import DualNumber
+from typing import Union, Any
+import numpy as np
 
 class Exp(DualNumber):
     def __init__(self, real, dual=1, nth_expansion=50):
@@ -44,9 +46,9 @@ class Sigmoid(DualNumber):
         self.dn = DualNumber(real, dual)
     def __call__(self):
         """
-        1/(1+exp(-x)) cannot be implemented due to indivisibility of dual number system:
-            Dual number system have ring structure, not field structure.
-        Used Wolfram Alpha's Taylor expansion for sigmoid function
+        1/(1+exp(-x)) cannot be implemented due to indivisibility of dual number system
+            : Dual number system have ring structure, not field structure.
+        Used Wolfram Alpha's Taylor expansion for sigmoid function up to 11th order.
         https://www.wolframalpha.com/input?i=taylor+series+of+sigmoid
         """
         sigmoid_x = 1/2
@@ -57,3 +59,15 @@ class Sigmoid(DualNumber):
         sigmoid_x = ((self.dn)**9)*31/1452510 + sigmoid_x
         sigmoid_x = -1*((self.dn)**11)*691/319334400 + sigmoid_x
         return sigmoid_x
+    
+class ReLU(DualNumber):
+    def __init__(self, real, dual=1):
+        super().__init__(real, dual)
+        if self.real>=0:
+            self.dn = DualNumber(real, dual)
+        else:
+            self.dn = DualNumber(0, dual)
+    def __call__(self):
+        return self.dn
+
+    
