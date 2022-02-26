@@ -12,7 +12,7 @@ if __name__=="__main__":
     # Non vectorized version
     
     n_data = len(x_train)
-    epochs = 5000
+    epochs = 1000000
     learning_rate = 0.01
     
     start = time()
