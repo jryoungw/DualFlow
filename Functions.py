@@ -3,11 +3,13 @@ from DualClass import DualNumber
 from typing import Union, Any
 import numpy as np
 
-class Exp(DualNumber):
+class Exp():
     def __init__(self, real, dual=1, nth_expansion=50):
-        super().__init__(real, dual)
+        if isinstance(real, DualNumber):
+            self.dn = real
+        else:
+            self.dn = DualNumber(real, dual)
         self.nth_expansion = nth_expansion
-        self.dn = DualNumber(real, dual)
         
     def __call__(self):
         exp_x = DualNumber(0, 0)
@@ -16,11 +18,13 @@ class Exp(DualNumber):
         return exp_x
     
     
-class Sin(DualNumber):
+class Sin():
     def __init__(self, real, dual=1, nth_expansion=50):
-        super().__init__(real, dual)
+        if isinstance(real, DualNumber):
+            self.dn = real
+        else:
+            self.dn = DualNumber(real, dual)
         self.nth_expansion = nth_expansion
-        self.dn = DualNumber(real, dual)
 
     def __call__(self):
         sin_x = DualNumber(0, 0)
@@ -28,11 +32,13 @@ class Sin(DualNumber):
             sin_x += (self.dn ** (2*i+1)) * ((-1) ** i) / math.factorial(2*i+1)
         return sin_x
     
-class Cos(DualNumber):
+class Cos():
     def __init__(self, real, dual=1, nth_expansion=50):
-        super().__init__(real, dual)
+        if isinstance(real, DualNumber):
+            self.dn = real
+        else:
+            self.dn = DualNumber(real, dual)
         self.nth_expansion = nth_expansion
-        self.dn = DualNumber(real, dual)
 
     def __call__(self):
         cos_x = DualNumber(0, 0)
@@ -40,10 +46,12 @@ class Cos(DualNumber):
             cos_x += (self.dn ** (2*i)) * ((-1) ** i) / math.factorial(2*i)
         return cos_x
     
-class Sigmoid(DualNumber):
+class Sigmoid():
     def __init__(self, real, dual=1):
-        super().__init__(real, dual)
-        self.dn = DualNumber(real, dual)
+        if isinstance(real, DualNumber):
+            self.dn = real
+        else:
+            self.dn = DualNumber(real, dual)
     def __call__(self):
         """
         1/(1+exp(-x)) cannot be implemented due to indivisibility of dual number system
@@ -60,9 +68,8 @@ class Sigmoid(DualNumber):
         sigmoid_x = -1*((self.dn)**11)*691/319334400 + sigmoid_x
         return sigmoid_x
     
-class ReLU(DualNumber):
+class ReLU():
     def __init__(self, real, dual=1):
-        super().__init__(real, dual)
         if self.real>=0:
             self.dn = DualNumber(real, dual)
         else:

@@ -4,9 +4,25 @@ import numpy as np
 class DualNumber():
     def __init__(self,
                  real,
-                 dual=1):
+                 dual=1,
+                 isT:bool=False):
         self.real = real
         self.dual = dual
+        self.isT = isT
+        try:
+            self.realT = real.T
+        except:
+            self.realT = real
+        try:
+            self.dualT = dual.T
+        except:
+            self.dualT = dual
+        
+        if not self.isT:
+            self.isT = True
+            self.T = DualNumber(self.realT, self.dualT, self.isT)
+        else:
+            return
         
     """
     Basic 4 arithmetic operations.
@@ -64,10 +80,13 @@ class DualNumber():
         return DualNumber(self.real, self.dual)
 
     def __repr__(self):
-        if self.dual>=0:
+        try:
+            if self.dual>=0:
+                return repr(self.real) + '+' + repr(self.dual) + 'e'
+            else:
+                return repr(self.real) + '-' + repr(abs(self.dual)) + 'e'
+        except:
             return repr(self.real) + '+' + repr(self.dual) + 'e'
-        else:
-            return repr(self.real) + '-' + repr(abs(self.dual)) + 'e'
         
     """
     Calculating only real axis. Dual number will not be calculated.
@@ -126,6 +145,27 @@ class DualNumber():
         
     def sum(self):
         return DualNumber(np.sum(self.real), np.sum(self.dual))
+    
+    def dot(self, other):
+        if isinstance(other, DualNumber) or isinstance(other, DualTensor):
+#             assert (type(self.dual) != DualNumber) and (type(self.dual) != DualTensor) and \
+#                     (type(other.dual) != DualNumber) and (type(other.dual) != DualTensor)
+            try:
+                return DualNumber(self.real.dot(other.real), \
+                                  self.dual.dot(other.real) + \
+                                  self.real.dot(other.dual))
+            except:
+                return DualNumber(self.real.dot(other.real), \
+                                  self.dual * other.real.dot(np.ones(other.real.T.shape)) + \
+                                  other.dual * self.real.T.dot(np.ones(self.real.shape)))
+        else:
+            try:
+                return DualNumber(self.real.dot(other), \
+                                  self.dual.dot(other))
+            except:
+                return DualNumber(self.real.dot(other), \
+                                  self.dual * other * np.ones(self.real.T.shape))
+            
 
         
 class DualTensor(DualNumber):
