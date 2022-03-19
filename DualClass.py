@@ -168,7 +168,7 @@ class DualNumber():
             
 
         
-class DualTensor(DualNumber):
+class DualTensor():
     def __init__(self, 
                  real,
                  dual=1):
@@ -176,8 +176,10 @@ class DualTensor(DualNumber):
         super().__init__(real, dual)
         self.dtypeDual = Union[DualTensor, DualNumber]
         self.dtypeUsual = Union[np.ndarray, int, float]
-        self.real = real
-        self.dual = dual
+        self.real = np.array(real, dtype=np.float32)
+        self.dual = np.array(dual, dtype=np.float32)
+
+    _HANDLED_FUNCTIONS = {} 
 
     def __add__(self, other):
         if isinstance(other, DualTensor) or isinstance(other, DualNumber):
@@ -192,24 +194,24 @@ class DualTensor(DualNumber):
 
     def __sub__(self, other):
         if isinstance(other, DualTensor) or isinstance(other, DualNumber):
-            return DualNumber(self.real - other.real, self.dual - other.dual)
+            return DualTensor(self.real - other.real, self.dual - other.dual)
         else:
             return DualTensor(self.real - other, self.dual)
         
     def __rsub__(self, other):
         if isinstance(other, DualTensor) or isinstance(other, DualNumber):
-            return DualNumber(other.real - self.real, other.dual - self.dual)
+            return DualTensor(other.real - self.real, other.dual - self.dual)
         else:
             return DualTensor(other - self.real, -self.dual)
 
     def __mul__(self, other):
         if isinstance(other, DualTensor) or isinstance(other, DualNumber):
-            return DualNumber(self.real * other.real, self.real * other.dual + self.dual * other.real)
+            return DualTensor(self.real * other.real, self.real * other.dual + self.dual * other.real)
         else:
             return DualTensor(self.real * other, self.dual * other)
     def __rmul__(self, other):
         if isinstance(other, DualTensor) or isinstance(other, DualNumber):
-            return DualNumber(self.real * other.real, self.real * other.dual + self.dual * other.real)
+            return DualTensor(self.real * other.real, self.real * other.dual + self.dual * other.real)
         else:
             return DualTensor(self.real * other, self.dual * other)
 
@@ -235,10 +237,20 @@ class DualTensor(DualNumber):
         return DualTensor(self.real, self.dual)
 
     def __repr__(self):
-        if self.dual>=0:
+        # We need a better representation
+        # if self.dual>=0:        # self.dual is an array. >= operater does not work
+        if True:
             return repr(self.real) + '+' + repr(self.dual) + 'e'
         else:
             return repr(self.real) + '-' + repr(abs(self.dual)) + 'e'
+
+    def __array_function__(self, func, types, args, kwargs):
+       if func not in self._HANDLED_FUNCTIONS:
+           return NotImplemented
+       # Note: this allows subclasses that don't override
+       if not all(issubclass(t, self.__class__) for t in types):
+           return NotImplemented
+       return self._HANDLED_FUNCTIONS[func](*args, **kwargs)
         
 
 
