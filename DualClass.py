@@ -1,6 +1,15 @@
 from typing import Union, Any
 import numpy as np
 
+
+def sigmoid(z):
+    s = 1 / (1 + np.exp(-z))
+    return s
+
+def dsigmoid(z):
+    return sigmoid(z) * (1 - sigmoid(z))
+
+
 class DualNumber():
     def __init__(self,
                  real,
@@ -69,6 +78,7 @@ class DualNumber():
         else:
             return DualNumber(self.real / other, self.dual / other)
     
+
     def __pow__(self, other):
         assert isinstance(other, int)
         return DualNumber(self.real ** other, self.dual * other * self.real ** (other-1))
@@ -167,19 +177,20 @@ class DualNumber():
                                   self.dual * other * np.ones(self.real.T.shape))
             
 
-        
 class DualTensor():
     def __init__(self, 
                  real,
-                 dual=1):
-        
-        super().__init__(real, dual)
+                 dual=None):
+    
         self.dtypeDual = Union[DualTensor, DualNumber]
         self.dtypeUsual = Union[np.ndarray, int, float]
         self.real = np.array(real, dtype=np.float32)
-        self.dual = np.array(dual, dtype=np.float32)
+        if dual is not None:
+            assert real.shape == dual.shape, "Real and Dual array do not match in shape"
+            self.dual = np.array(dual, dtype=np.float32)
+        else :
+            self.dual = np.ones_like(real)
 
-    _HANDLED_FUNCTIONS = {} 
 
     def __add__(self, other):
         if isinstance(other, DualTensor) or isinstance(other, DualNumber):
@@ -219,7 +230,6 @@ class DualTensor():
         assert other != 0, "Divisor should not be zero."
         if isinstance(other, DualTensor) or isinstance(other, DualNumber):
 #             return DualTensor(self.real / other.real, (self.dual * other.real - self.real * other.dual)) / (other.real**2)
-
             assert(0), "Dividing multi-dimensional dual number into dual number is not permitted.\n" + \
                        "                This is due to ring structure of dual number system and ambiguity of division.\n" + \
                        "                For more details, refer 'https://en.wikipedia.org/wiki/Dual_number'"
@@ -244,14 +254,57 @@ class DualTensor():
         else:
             return repr(self.real) + '-' + repr(abs(self.dual)) + 'e'
 
-    def __array_function__(self, func, types, args, kwargs):
-       if func not in self._HANDLED_FUNCTIONS:
-           return NotImplemented
-       # Note: this allows subclasses that don't override
-       if not all(issubclass(t, self.__class__) for t in types):
-           return NotImplemented
-       return self._HANDLED_FUNCTIONS[func](*args, **kwargs)
+    def matmul(self, other):
+        if isinstance(other, DualTensor):
+            return DualTensor(np.matmul(self.real, other.real), np.matmul(self.real, other.dual) + np.matmul(self.dual, other.real))
+        else : 
+            return DualTensor(np.matmul(self.real, other), np.matmul(self.dual, other))
+
+    def _matmul(self, other):
+        if isinstance(other, DualTensor):
+            self.real = np.matmul(self.real, other.real)
+            self.dual = np.matmul(self.real, other.dual) + np.matmul(self.dual, other.real)
+        else : 
+            self.real = np.matmul(self.real, other)
+            self.dual = np.matmul(self.dual, other)
+
+
+
+    def dot(self, other):
+        if isinstance(other, DualTensor):
+            return DualTensor(np.dot(self.real, other.real), np.dot(self.real, other.dual) + np.dot(self.dual, other.real))
+        else : 
+            return DualTensor(np.dot(self.real, other), np.dot(self.dual, other))
+
+    def _dot(self, other):
+        if isinstance(other, DualTensor):
+            self.real = np.dot(self.real, other.real)
+            self.dual = np.dot(self.real, other.dual) + np.dot(self.dual, other.real)
+        else : 
+            self.real = np.dot(self.real, other)
+            self.dual = np.dot(self.dual, other)
+    
+    def relu(self):
+        return DualTensor(self.real * (self.real > 0), self.dual * (self.real > 0))
+
+    def _relu(self):
+        self.real = self.real * (self.real > 0)
+        self.dual = self.dual * (self.real > 0)
+
+    def detach(self):
+        self.dual.fill(0)
         
+    def partial(self):
+        self.dual.fill(1)
+
+    def T(self):
+        return DualTensor(self.real.T, self.dual.T)
+
+    def inv(self):
+        return DualTensor(1 / self.real, (self.real - self.dual) / (self.real ** 2))
+
+    def tanh(self):
+        return DualTensor(np.tanh(self.real), self.dual * (1 - (np.tanh(self.real) ** 2)))
 
 
 def check_dtype(tensor_list:Any,
