@@ -33,7 +33,7 @@ class DualNumber():
                     self.dual[ijk_name] = value
                     
             else:
-                dual = kwargs[name]
+                dual = kwargs[name] 
 
         try:
             self.realT = deepcopy(real.T)
